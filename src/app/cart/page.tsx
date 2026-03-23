@@ -214,7 +214,7 @@ export default function CartPage() {
         {/* Auto-enroll membership toggle */}
         <div
           onClick={() => setAutoEnrollMembership(!autoEnrollMembership)}
-          className="flex items-center justify-between mb-5 p-4 bg-gray-50 rounded-lg cursor-pointer select-none"
+          className="flex items-center justify-between mb-8 p-4 bg-gray-50 rounded-lg cursor-pointer select-none"
         >
           <div className="flex items-center gap-3">
             <span className="text-pink-400 text-sm">✦</span>
