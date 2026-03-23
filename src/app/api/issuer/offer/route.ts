@@ -20,7 +20,7 @@ function buildOffer(credConfigId: string, preAuthCode: string) {
 // Membership offer
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { memberName, memberEmail } = body;
+  const { memberName, memberEmail, pushToWallet } = body;
 
   if (!memberName || !memberEmail) {
     return NextResponse.json({ error: "memberName and memberEmail required" }, { status: 400 });
@@ -31,8 +31,18 @@ export async function POST(req: NextRequest) {
   const preAuthCode = createPreAuthCode("TwinkleLoyaltyPass", payload);
   const { credentialOffer, webWalletUrl } = buildOffer("TwinkleLoyaltyPass", preAuthCode);
 
+  // Auto-push to wallet notification queue if requested
+  if (pushToWallet) {
+    pushNotification(memberEmail, {
+      credentialOffer,
+      webWalletUrl,
+      credType: "TwinkleLoyaltyPass",
+      preview: { type: "membership", memberId, memberName, tier: "Gold", points: 500 },
+    });
+  }
+
   return NextResponse.json({
-    credentialOffer, webWalletUrl, memberId, tier: "Gold", points: 500,
+    credentialOffer, webWalletUrl, memberId, memberName, tier: "Gold", points: 500,
   }, { headers: { "Access-Control-Allow-Origin": "*" } });
 }
 

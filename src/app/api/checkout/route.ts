@@ -5,7 +5,7 @@ import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
-  const { items, guestEmail } = await req.json();
+  const { items, guestEmail, autoEnrollMembership } = await req.json();
 
   if (!items || items.length === 0) {
     return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
     success_url: `${process.env.NEXTAUTH_URL}/checkout/success?order=${order.id}`,
     cancel_url: `${process.env.NEXTAUTH_URL}/cart`,
     customer_email: guestEmail || session?.user?.email || undefined,
-    metadata: { orderId: order.id },
+    metadata: { orderId: order.id, autoEnrollMembership: autoEnrollMembership ? "true" : "false" },
   });
 
   // Update order with stripe session id

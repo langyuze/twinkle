@@ -14,6 +14,7 @@ export default function CartPage() {
   const [emailError, setEmailError] = useState("");
   const [promoSent, setPromoSent] = useState(false);
   const [promoBanner, setPromoBanner] = useState<{ code: string; percent: number; expiresAt: string } | null>(null);
+  const [autoEnrollMembership, setAutoEnrollMembership] = useState(true);
 
   useEffect(() => {
     setCart(getCart());
@@ -88,6 +89,7 @@ export default function CartPage() {
         body: JSON.stringify({
           items: cart,
           guestEmail: session ? undefined : guestEmail,
+          autoEnrollMembership,
         }),
       });
       const data = await res.json();
@@ -208,6 +210,22 @@ export default function CartPage() {
             </div>
           </div>
         )}
+
+        {/* Auto-enroll membership toggle */}
+        <label className="flex items-start gap-3 mb-5 p-4 rounded-2xl border border-pink-100 bg-gradient-to-r from-pink-50 to-purple-50 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={autoEnrollMembership}
+            onChange={(e) => setAutoEnrollMembership(e.target.checked)}
+            className="mt-0.5 w-5 h-5 rounded accent-pink-400 flex-shrink-0"
+          />
+          <div>
+            <span className="text-sm font-semibold text-gray-800">✦ Auto-enroll in Twinkle Membership</span>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Your Gold membership pass will be automatically saved to your Google Wallet after purchase
+            </p>
+          </div>
+        </label>
 
         <button
           onClick={handleCheckout}
