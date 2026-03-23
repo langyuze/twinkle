@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Wallet is the New Inbox</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  :root {
+    --bg: #09090b;
+    --fg: #fafafa;
+    --muted: #71717a;
+    --accent: #E8A0BF;
+    --red: #ef4444;
+    --green: #22c55e;
+    --blue: #3b82f6;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    overflow: hidden;
+  }
+
+  .slide {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    top: 0; left: 0;
+    display: flex;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.45s ease;
+  }
+  .slide.active { opacity: 1; pointer-events: auto; }
+
+  .slide.full-center {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 80px;
+    text-align: center;
+  }
+
+  .slide.split { flex-direction: row; }
+  .split .text-half {
+    width: 42%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 64px;
+  }
+  .split .img-half {
+    width: 58%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    position: relative;
+  }
+  .split.reverse { flex-direction: row-reverse; }
+
+  h1 { font-size: 56px; font-weight: 800; line-height: 1.1; letter-spacing: -2.5px; }
+  h2 { font-size: 44px; font-weight: 700; line-height: 1.15; letter-spacing: -1.5px; }
+  h3 { font-size: 28px; font-weight: 600; line-height: 1.3; letter-spacing: -0.5px; }
+  .lead { font-size: 20px; color: var(--muted); line-height: 1.6; margin-top: 20px; }
+  .small { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+  .pink { color: var(--accent); }
+  .red { color: var(--red); }
+  .green { color: var(--green); }
+  .blue { color: var(--blue); }
+  .dim { color: #3f3f46; }
+  .white { color: #fff; }
+
+  .tag {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .tag-pink { background: rgba(232,160,191,0.12); color: var(--accent); }
+  .tag-red { background: rgba(239,68,68,0.12); color: var(--red); }
+  .tag-green { background: rgba(34,197,94,0.1); color: var(--green); }
+  .tag-blue { background: rgba(59,130,246,0.1); color: var(--blue); }
+  .tag-dim { background: #18181b; color: var(--muted); }
+
+  .step-num {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .phone-img {
+    height: 75vh;
+    max-height: 680px;
+    border-radius: 28px;
+    box-shadow: 0 25px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08);
+  }
+
+  .duo-phones {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+  .duo-phones img {
+    height: 65vh;
+    max-height: 580px;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06);
+  }
+  .duo-arrow { font-size: 28px; color: #27272a; }
+
+  .points { list-style: none; margin-top: 24px; }
+  .points li { font-size: 18px; line-height: 2.2; color: #a1a1aa; }
+  .points li strong { color: var(--fg); font-weight: 600; }
+  .x-list li::before { content: "✕  "; color: var(--red); font-weight: 700; font-size: 14px; }
+  .check-list li::before { content: "✓  "; color: var(--green); font-weight: 700; font-size: 14px; }
+
+  .progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--accent); transition: width 0.4s ease; z-index: 100; }
+  .slide-num { position: fixed; bottom: 28px; right: 40px; font-size: 13px; color: #27272a; z-index: 100; font-variant-numeric: tabular-nums; }
+  .nav-hint { position: fixed; bottom: 28px; left: 40px; font-size: 12px; color: #27272a; z-index: 100; }
+  .nav-hint kbd { background: #18181b; border: 1px solid #27272a; border-radius: 4px; padding: 2px 7px; font-family: inherit; font-size: 11px; }
+
+  .gradient-text {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--red) 50%, var(--blue) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .glow-pink { position: relative; }
+  .glow-pink::before {
+    content: '';
+    position: absolute;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(232,160,191,0.12) 0%, transparent 70%);
+    border-radius: 50%;
+    z-index: -1;
+  }
+  .glow-red { position: relative; }
+  .glow-red::before {
+    content: '';
+    position: absolute;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(239,68,68,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    z-index: -1;
+  }
+
+  /* Big stat */
+  .stat-row {
+    display: flex;
+    gap: 48px;
+    margin-top: 40px;
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 56px;
+    font-weight: 800;
+    letter-spacing: -3px;
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+
+  /* Vision cards */
+  .vision-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    width: 100%;
+    max-width: 960px;
+    margin-top: 40px;
+  }
+  .v-card {
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 16px;
+    padding: 28px;
+  }
+  .v-card .icon { font-size: 28px; margin-bottom: 12px; }
+  .v-card h3 { font-size: 17px; font-weight: 600; margin-bottom: 8px; letter-spacing: 0; }
+  .v-card p { font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+  /* Timeline */
+  .tl { display: flex; gap: 0; width: 100%; max-width: 1000px; margin-top: 40px; }
+  .tl-item {
+    flex: 1;
+    padding: 0 16px;
+    border-top: 2px solid #27272a;
+    padding-top: 20px;
+    position: relative;
+  }
+  .tl-item::before {
+    content: '';
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #27272a;
+    position: absolute;
+    top: -6px; left: 16px;
+  }
+  .tl-item.active::before { background: var(--accent); }
+  .tl-item.active { border-top-color: var(--accent); }
+  .tl-year { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: 1px; margin-bottom: 8px; }
+  .tl-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .tl-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  /* Killer quote */
+  .killer-quote {
+    font-size: 32px;
+    font-weight: 300;
+    line-height: 1.5;
+    max-width: 800px;
+    color: #a1a1aa;
+  }
+  .killer-quote em {
+    color: #fff;
+    font-style: normal;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== 1: TITLE ===== -->
+<div class="slide full-center active">
+  <div class="tag tag-dim">Credential Commerce Platform</div>
+  <h1>The Wallet is<br>Every Brand's Next <span class="pink">Storefront</span></h1>
+  <p class="lead" style="max-width: 600px;">
+    A direct, trusted, user-controlled channel<br>
+    between merchants and customers &mdash;<br>
+    no app, no email, no spam.
+  </p>
+</div>
+
+<!-- ===== 2: THE BROKEN CHANNEL ===== -->
+<div class="slide full-center">
+  <div class="tag tag-red">The $18B Problem</div>
+  <h2>Merchants can't reach their<br>own customers</h2>
+  <div class="stat-row">
+    <div class="stat">
+      <div class="stat-num red">85%</div>
+      <div class="stat-label">of marketing emails<br>go to spam or unread</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num red">$29</div>
+      <div class="stat-label">average cost to<br>re-acquire an existing customer</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num red">50%</div>
+      <div class="stat-label">of users uninstall<br>merchant apps within 30 days</div>
+    </div>
+  </div>
+  <p class="lead" style="margin-top: 40px; max-width: 640px;">
+    Klaviyo, Braze, Mailchimp &mdash; an entire industry<br>
+    optimizing a <em>dying medium</em>.
+  </p>
+</div>
+
+<!-- ===== 3: THE ONE APP ===== -->
+<div class="slide full-center">
+  <p class="killer-quote">
+    Every brand wants a presence<br>
+    on their customer's phone.<br><br>
+    There's only one place left<br>
+    that users <em>never delete</em>, check <em>every day</em>,<br>
+    and <em>trust completely</em>.
+  </p>
+  <h2 class="gradient-text" style="margin-top: 32px; font-size: 52px;">Their wallet.</h2>
+</div>
+
+<!-- ===== 4: THE THESIS ===== -->
+<div class="slide full-center">
+  <div class="tag tag-pink">The Thesis</div>
+  <h2 style="max-width: 820px; line-height: 1.3;">
+    Merchants issue <span class="white">verifiable credentials</span> &mdash;<br>
+    memberships, receipts, promotions &mdash;<br>
+    directly to the customer's <span class="gradient-text">digital wallet</span>
+  </h2>
+  <p class="lead" style="max-width: 600px;">
+    No app install. No spam filter. Cryptographically signed.<br>
+    User-controlled. Open standard.
+  </p>
+  <div class="stat-row" style="margin-top: 48px;">
+    <div class="stat">
+      <div class="stat-num green">150M+</div>
+      <div class="stat-label">Google Wallet<br>monthly active users</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num green">450M</div>
+      <div class="stat-label">EU citizens mandated<br>digital wallet by 2026</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num green">~100%</div>
+      <div class="stat-label">visibility when credential<br>is in the wallet</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 5: INFRASTRUCTURE READY ===== -->
+<div class="slide full-center">
+  <div class="tag tag-blue">The Rails Are Laid</div>
+  <h2 style="margin-bottom: 36px;">The infrastructure exists.<br>The merchant tooling <span class="blue">doesn't</span>.</h2>
+  <div class="vision-grid" style="grid-template-columns: repeat(4, 1fr); max-width: 1040px;">
+    <div class="v-card">
+      <div class="icon">🔑</div>
+      <h3>OpenID4VCI</h3>
+      <p>W3C/IETF standard for credential issuance. Ratified and adopted.</p>
+    </div>
+    <div class="v-card">
+      <div class="icon">🇪🇺</div>
+      <h3>eIDAS 2.0</h3>
+      <p>EU mandates digital identity wallets for all member states by end of 2026.</p>
+    </div>
+    <div class="v-card">
+      <div class="icon">📱</div>
+      <h3>Google &amp; Apple</h3>
+      <p>Both adding OID4VCI support to their wallet platforms. The surface is ready.</p>
+    </div>
+    <div class="v-card">
+      <div class="icon">🏛️</div>
+      <h3>NIST mDL</h3>
+      <p>29 industry partners. Mobile identity guidelines published. Institutions are moving.</p>
+    </div>
+  </div>
+  <p class="lead" style="margin-top: 32px; max-width: 600px;">
+    We're building the <strong style="color: #fff;">Stripe for wallet credentials</strong> &mdash;<br>
+    the merchant-side platform the ecosystem needs.
+  </p>
+</div>
+
+<!-- ===== 6: LET ME SHOW YOU ===== -->
+<div class="slide full-center">
+  <p class="small" style="letter-spacing: 3px; text-transform: uppercase; margin-bottom: 16px;">Let me show you</p>
+  <h1 style="font-size: 64px;" class="gradient-text">Live Demo</h1>
+  <p class="lead">A working end-to-end prototype</p>
+</div>
+
+<!-- ===== 7: STEP 1 — STORE ===== -->
+<div class="slide split">
+  <div class="text-half">
+    <p class="step-num">Step 1</p>
+    <h2>The Store:<br><span class="pink">Twinkle</span></h2>
+    <p class="lead">
+      A fully functional e-commerce site. Customer signs in with Google &mdash; giving the merchant a verified identity.
+    </p>
+    <p class="small" style="margin-top: 20px; color: #52525b;">
+      115 products &middot; 1,200 SKUs &middot; Stripe checkout &middot; Google OAuth
+    </p>
+  </div>
+  <div class="img-half">
+    <img src="/deck/img/storefront.jpg" class="phone-img" alt="Twinkle storefront">
+  </div>
+</div>
+
+<!-- ===== 8: STEP 2 — MEMBERSHIP SAVE ===== -->
+<div class="slide split reverse">
+  <div class="text-half">
+    <p class="step-num">Step 2</p>
+    <h2>Join Membership<br><span class="pink">&rarr; Save to Wallet</span></h2>
+    <p class="lead">
+      Customer joins loyalty program and sees their membership card with a<br>
+      <strong style="color:#fff;">&ldquo;Save to Digital Wallet&rdquo;</strong> button.
+    </p>
+    <p class="small" style="margin-top: 16px;">
+      One tap. No app download. No QR code.<br>
+      A verifiable credential lands in their wallet &mdash; instantly.
+    </p>
+  </div>
+  <div class="img-half glow-pink">
+    <img src="/deck/img/membership-save.png" class="phone-img" alt="Membership card with Save to Wallet">
+  </div>
+</div>
+
+<!-- ===== 9: STEP 2b — OID4VCI ===== -->
+<div class="slide split">
+  <div class="text-half">
+    <p class="step-num">Under the hood</p>
+    <h2>Issued via<br><span class="blue">OpenID4VCI</span></h2>
+    <p class="lead">
+      The full protocol runs in seconds &mdash; metadata resolution, token exchange, credential issuance.
+    </p>
+    <ul class="points check-list" style="margin-top: 16px; font-size: 16px;">
+      <li><strong>SD-JWT VC</strong> &mdash; selective disclosure, privacy-preserving</li>
+      <li><strong>ES256 signed</strong> &mdash; tamper-proof, verifiable by anyone</li>
+      <li><strong>Open standard</strong> &mdash; works with any compliant wallet</li>
+    </ul>
+  </div>
+  <div class="img-half">
+    <img src="/deck/img/oid4vci-flow.png" class="phone-img" alt="OID4VCI flow">
+  </div>
+</div>
+
+<!-- ===== 10: STEP 3 — CART ABANDONMENT ===== -->
+<div class="slide split reverse">
+  <div class="text-half">
+    <p class="step-num">Step 3</p>
+    <h2>Cart Abandonment<br><span class="red">&rarr; Promo in Wallet</span></h2>
+    <p class="lead">
+      Customer leaves items in cart. Merchant pushes a <strong style="color:#fff;">personalized offer</strong> directly to their wallet.
+    </p>
+    <ul class="points" style="margin-top: 16px; font-size: 16px;">
+      <li>&#x1F6D2;&ensp; Actual cart items with images &amp; prices</li>
+      <li>&#x23F0;&ensp; Live countdown timer</li>
+      <li>&#x1F3F7;&ensp; Unique promo code</li>
+      <li>&#x1F517;&ensp; One-tap checkout link back to store</li>
+    </ul>
+    <p class="small" style="margin-top: 16px;">
+      Not an email they'll never open.<br>
+      A signed credential in the app they check 50x/day.
+    </p>
+  </div>
+  <div class="img-half glow-red">
+    <img src="/deck/img/promo-card.png" class="phone-img" alt="Promo in wallet">
+  </div>
+</div>
+
+<!-- ===== 11: NOTIFICATION FLOW ===== -->
+<div class="slide full-center">
+  <p class="step-num">The customer experience</p>
+  <h2 style="margin-bottom: 32px;">Notification &rarr; Accept &rarr; <span class="green">In Wallet</span></h2>
+  <div class="duo-phones">
+    <img src="/deck/img/promo-notification.png" alt="Notification">
+    <span class="duo-arrow">&rarr;</span>
+    <img src="/deck/img/promo-card.png" alt="Accepted">
+  </div>
+  <p class="small" style="margin-top: 24px;">
+    The customer <strong style="color: #fff;">chooses</strong> to accept or dismiss every credential. Their wallet, their rules.
+  </p>
+</div>
+
+<!-- ===== 12: STEP 4 — RECEIPT ===== -->
+<div class="slide split">
+  <div class="text-half">
+    <p class="step-num">Step 4</p>
+    <h2>Checkout<br><span class="green">&rarr; Receipt in Wallet</span></h2>
+    <p class="lead">
+      After purchase, a verifiable receipt is automatically pushed to the wallet.
+    </p>
+    <ul class="points check-list" style="margin-top: 16px; font-size: 16px;">
+      <li><strong>Itemized</strong> &mdash; every item, quantity, price</li>
+      <li><strong>Signed</strong> &mdash; cryptographic proof of purchase</li>
+      <li><strong>Permanent</strong> &mdash; returns, warranties, taxes, expenses</li>
+      <li><strong>The wedge</strong> &mdash; zero behavior change, instant value</li>
+    </ul>
+    <p class="small" style="margin-top: 16px;">
+      The receipt opens the channel.<br>
+      Loyalty and promos follow.
+    </p>
+  </div>
+  <div class="img-half">
+    <img src="/deck/img/receipt-notification.png" class="phone-img" alt="Receipt in wallet">
+  </div>
+</div>
+
+<!-- ===== 13: FULL WALLET ===== -->
+<div class="slide full-center">
+  <p class="step-num">The Result</p>
+  <h2 style="margin-bottom: 32px;">Everything in <span class="gradient-text">one wallet</span></h2>
+  <img src="/deck/img/wallet-full.png" class="phone-img" style="max-height: 620px;" alt="Full wallet">
+  <p class="small" style="margin-top: 20px;">
+    Membership &middot; Promotion &middot; Receipt &mdash; three verifiable credentials, one direct channel.
+  </p>
+</div>
+
+<!-- ===== 14: THE MOAT ===== -->
+<div class="slide full-center">
+  <div class="tag tag-green">The Moat</div>
+  <h2 style="margin-bottom: 40px;">Why this compounds</h2>
+  <div class="vision-grid">
+    <div class="v-card">
+      <div class="icon">🔄</div>
+      <h3>Network Effects</h3>
+      <p>Every merchant grows the wallet ecosystem. Every credential makes wallets stickier. Compounding flywheel.</p>
+    </div>
+    <div class="v-card">
+      <div class="icon">🔐</div>
+      <h3>Standard Ownership</h3>
+      <p>We build on OpenID4VCI &mdash; the standard Google, Apple, and the EU chose. The standard is the moat.</p>
+    </div>
+    <div class="v-card">
+      <div class="icon">📊</div>
+      <h3>Data Position</h3>
+      <p>Every issuance, every acceptance, every conversion. The real-time graph of merchant-customer relationships.</p>
+    </div>
+    <div class="v-card">
+      <div class="icon">🏪</div>
+      <h3>Direct Channel</h3>
+      <p>No email provider. No app store. No platform tax. Merchant &rarr; Wallet. That's it.</p>
+    </div>
+    <div class="v-card">
+      <div class="icon">🛡️</div>
+      <h3>User Trust</h3>
+      <p>Customers accept or dismiss each credential. Consent-based &gt; spam-based. Fundamentally different relationship.</p>
+    </div>
+    <div class="v-card">
+      <div class="icon">⚡</div>
+      <h3>One Line of Code</h3>
+      <p>Shopify plugin. Stripe-like API. Merchants don't need to understand cryptography. We abstract it.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 15: THE ECONOMICS ===== -->
+<div class="slide full-center">
+  <div class="tag tag-pink">The Economics</div>
+  <h2 style="margin-bottom: 16px;">Marketing budget &rarr;<br><span class="green">Customer discount</span></h2>
+  <p class="lead" style="max-width: 640px; margin-bottom: 40px;">
+    The $29 merchants spend to re-acquire a customer through ads and email<br>
+    becomes a <strong style="color: #fff;">$29 discount sent directly to their wallet</strong>.
+  </p>
+  <div style="display: flex; gap: 32px; align-items: center; max-width: 900px;">
+    <div class="v-card" style="flex: 1; text-align: center; border-color: #333;">
+      <p style="font-size: 12px; color: var(--red); font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">Today</p>
+      <p style="font-size: 36px; font-weight: 800; margin: 12px 0; letter-spacing: -2px;">$29</p>
+      <p class="small">Goes to Google Ads, Meta,<br>Klaviyo, SMS providers</p>
+      <p style="margin-top: 12px; font-size: 13px; color: #555;">Customer gets: spam</p>
+    </div>
+    <div style="font-size: 32px; color: var(--accent);">&rarr;</div>
+    <div class="v-card" style="flex: 1; text-align: center; border-color: rgba(34,197,94,0.3);">
+      <p style="font-size: 12px; color: var(--green); font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">With Wallet Credentials</p>
+      <p style="font-size: 36px; font-weight: 800; margin: 12px 0; letter-spacing: -2px; color: var(--green);">$29</p>
+      <p class="small">Goes directly to customer<br>as a verified discount</p>
+      <p style="margin-top: 12px; font-size: 13px; color: var(--green);">Customer gets: real value</p>
+    </div>
+  </div>
+  <p class="small" style="margin-top: 32px; max-width: 600px;">
+    Higher conversion. Lower cost. No middleman.<br>
+    <strong style="color: #fff;">Both sides win. The ad platforms lose.</strong>
+  </p>
+</div>
+
+<!-- ===== 16: GO-TO-MARKET ===== -->
+<div class="slide full-center">
+  <div class="tag tag-pink">Go-to-Market</div>
+  <h2 style="margin-bottom: 16px;">Receipts are the Trojan horse</h2>
+  <p class="lead" style="max-width: 640px; margin-bottom: 40px;">
+    Start with verifiable receipts &mdash; zero behavior change, instant utility.<br>
+    Once the receipt is in the wallet, the channel is open forever.
+  </p>
+  <div class="tl">
+    <div class="tl-item active">
+      <div class="tl-year">Year 1</div>
+      <div class="tl-title">Receipts</div>
+      <div class="tl-desc">Verifiable receipts for Shopify DTC brands. Prove the channel. Show open rates that make Klaviyo look like direct mail.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-year">Year 2</div>
+      <div class="tl-title">Loyalty + Promos</div>
+      <div class="tl-desc">Add membership passes and promotional offers. Merchants manage their full wallet strategy from one dashboard.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-year">Year 3</div>
+      <div class="tl-title">Primary Channel</div>
+      <div class="tl-desc">Wallet becomes the default post-purchase channel. Merchants shift budget from email to wallet credentials.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-year">Year 4</div>
+      <div class="tl-title">Verification</div>
+      <div class="tl-desc">OpenID4VP for credential presentation. Age verification, loyalty validation, proof-of-purchase &mdash; replacing paper and PDF.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-year">Year 5</div>
+      <div class="tl-title">Wallet = CRM</div>
+      <div class="tl-desc">Identity, payments, loyalty, promos, receipts &mdash; all in one wallet. Email marketing is a legacy channel.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 16: ANALOGY ===== -->
+<div class="slide full-center">
+  <p class="killer-quote">
+    Stripe didn't invent credit cards.<br>
+    We're not inventing wallets.<br><br>
+    <em>We're turning them into<br>every brand's storefront.</em>
+  </p>
+</div>
+
+<!-- ===== 17: CLOSE ===== -->
+<div class="slide full-center">
+  <h1 style="font-size: 52px;">
+    The future of commerce<br>lives in your <span class="gradient-text">wallet</span>
+  </h1>
+  <p class="lead" style="margin-top: 16px;">
+    Not an app you'll delete. Not an email you'll ignore.<br>
+    <em>A storefront in every customer's pocket.</em>
+  </p>
+  <div style="margin-top: 64px; display: flex; align-items: center; gap: 14px;">
+    <span style="font-size: 32px;">✦</span>
+    <div style="text-align: left;">
+      <p style="font-weight: 700; font-size: 18px;">Twinkle</p>
+      <p class="small">Working prototype &middot; OpenID4VCI &middot; SD-JWT VC &middot; ES256</p>
+    </div>
+  </div>
+</div>
+
+<!-- Chrome -->
+<div class="progress" id="progress"></div>
+<div class="slide-num"><span id="cur">1</span> / <span id="tot">17</span></div>
+<div class="nav-hint"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> to navigate</div>
+
+<script>
+  const S = document.querySelectorAll('.slide'), N = S.length;
+  let c = 0;
+  document.getElementById('tot').textContent = N;
+  function go(n) {
+    if (n < 0 || n >= N) return;
+    S[c].classList.remove('active');
+    c = n;
+    S[c].classList.add('active');
+    document.getElementById('cur').textContent = c + 1;
+    document.getElementById('progress').style.width = ((c + 1) / N * 100) + '%';
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(c + 1); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); go(c - 1); }
+    else if (e.key === 'Home') go(0);
+    else if (e.key === 'End') go(N - 1);
+  });
+  let tx = 0;
+  document.addEventListener('touchstart', e => tx = e.touches[0].clientX);
+  document.addEventListener('touchend', e => {
+    const d = tx - e.changedTouches[0].clientX;
+    if (Math.abs(d) > 50) d > 0 ? go(c + 1) : go(c - 1);
+  });
+  document.addEventListener('click', e => {
+    if (e.target.closest('a,button')) return;
+    e.clientX > innerWidth / 2 ? go(c + 1) : go(c - 1);
+  });
+  window.goTo = go;
+</script>
+
+</body>
+</html>
