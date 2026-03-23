@@ -212,20 +212,29 @@ export default function CartPage() {
         )}
 
         {/* Auto-enroll membership toggle */}
-        <label className="flex items-start gap-3 mb-5 p-4 rounded-2xl border border-pink-100 bg-gradient-to-r from-pink-50 to-purple-50 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={autoEnrollMembership}
-            onChange={(e) => setAutoEnrollMembership(e.target.checked)}
-            className="mt-0.5 w-5 h-5 rounded accent-pink-400 flex-shrink-0"
-          />
-          <div>
-            <span className="text-sm font-semibold text-gray-800">✦ Auto-enroll in Twinkle Membership</span>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Your Gold membership pass will be automatically saved to your Google Wallet after purchase
-            </p>
+        <div
+          onClick={() => setAutoEnrollMembership(!autoEnrollMembership)}
+          className="flex items-center justify-between mb-5 p-4 bg-gray-50 rounded-lg cursor-pointer select-none"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-pink-400 text-sm">✦</span>
+            <div>
+              <p className="text-sm font-medium text-gray-800">Join Twinkle Membership</p>
+              <p className="text-xs text-gray-400">Gold pass saved to your wallet after purchase</p>
+            </div>
           </div>
-        </label>
+          <div
+            className={`relative w-10 h-6 rounded-full transition-colors ${
+              autoEnrollMembership ? "bg-pink-300" : "bg-gray-200"
+            }`}
+          >
+            <div
+              className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                autoEnrollMembership ? "translate-x-[18px]" : "translate-x-0.5"
+              }`}
+            />
+          </div>
+        </div>
 
         <button
           onClick={handleCheckout}
